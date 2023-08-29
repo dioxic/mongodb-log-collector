@@ -71,8 +71,3 @@ scp_file() {
 get_host() {
   echo $1 | (IFS=" " read gIndex gHost gOther; echo $gHost)
 }
-
-export NODES_CONFIG=$WORKDIR/nodes.cfg
-export LOG_DIR=/tmp/mlc
-export SSH_KEY=~/.ssh/markbm.pem
-export SSH_USER=ec2-user
