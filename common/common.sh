@@ -10,15 +10,13 @@ cli_log() {
 #export LOG_DIR=/var/log/motk
 
 print_nodes() {
-  while IFS=" " read -r index host type purpose dc scratch logs
+  while IFS=" " read -r index host type purpose dc
   do
     echo "Index-$index"
     echo "Host: $host"
     echo "Type: $type"
     echo "Purpose: $purpose"
     echo "Data Centre: $dc"
-    echo "Scratch: $scratch"
-    echo "Logs: $logs"
     echo ""
   done < <(tail -n +2 $1)
 }
@@ -27,7 +25,7 @@ print_nodes() {
 filter_nodes() {
 #    local -n filtered_arr=$3
 
-    while IFS=" " read -r index host type purpose dc scratch logs
+    while IFS=" " read -r index host type purpose dc
     do
       matches=0
 
@@ -58,37 +56,23 @@ filter_nodes() {
 
       if [ $matches -eq $2 ]
       then
-        filtered_nodes+=( "$index $host $type $purpose $dc $scratch $logs" )
+        filtered_nodes+=( "$index $host $type $purpose $dc" )
       fi
 
     done < <(tail -n +2 $1)
 }
 
-filter_nodes_old() {
-  filtered_arr=()
-  readarray nodes < $NODES_CONFIG
+#host path
+scp_file() {
+  scp -ri "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1":"$2" "$WORKDIR"/$(basename $2)
+}
 
-#  echo $nodes
-  match=0
-
-  for i in ${!nodes[@]}; do
-    echo ${nodes[$i]} | IFS=" " read -r index host type purpose dc scratch logs
-
-    echo $host
-  done
-
-  for t in ${nodes[@]}; do
-
-#    echo $t
-#    echo $t | read -r index host type purpose dc scratch logs
-
-#    echo $tIndex
-    filtered_arr+=t
-    match=$(($match + 1))
-  done
-
-#  echo $match
+# node line
+get_host() {
+  echo $1 | (IFS=" " read gIndex gHost gOther; echo $gHost)
 }
 
 export NODES_CONFIG=$WORKDIR/nodes.cfg
 export LOG_DIR=/tmp/mlc
+export SSH_KEY=~/.ssh/markbm.pem
+export SSH_USER=ec2-user

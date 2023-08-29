@@ -22,13 +22,19 @@ Commands:
 
 cmd=$1
 
+if [ -z "$cmd" ]
+then
+  cli_help
+fi
+
 shift 1
 
 case "$cmd" in
-  collect|c)
+  collect)
     "$WORKDIR/commands/collect.sh" "$@" | tee -ia "$LOG_DIR/mlc.log"
     ;;
   *)
+    echo "ERT"
     cli_help
     ;;
 esac

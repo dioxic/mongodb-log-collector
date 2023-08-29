@@ -7,7 +7,7 @@ cli_help_deploy() {
 Command: collect
 
 Usage:
-  deploy project_name
+  collect project_name
 
 Flags:
   -t          filter by type
@@ -16,6 +16,8 @@ Flags:
   -i          filter by index"
   exit 1
 }
+
+[ ! -n "$1" ] && cli_help_deploy
 
 filters=0
 
@@ -53,7 +55,9 @@ echo "Filters ($filters):"
 [[ ! -z "$fHost" ]] && echo "  Host=$fHost";
 echo ""
 
-[ ! -n "$1" ] && cli_help_deploy
+[ ! -f "$NODES_CONFIG" ] \
+  && echo "ERROR: No nodes cfg found at $NODES_CONFIG. " \
+  && exit 1
 
 #print_nodes $NODES_CONFIG index host type purpose dc scratch logs
 filtered_nodes=()
@@ -64,7 +68,10 @@ for i in ${!filtered_nodes[@]}; do
   echo "  ${filtered_nodes[$i]}"
 done
 
-cli_log "Collecting logs..."
-[ ! -f "$NODES_CONFIG" ] \
-  && echo "ERROR: No nodes cfg found at $NODES_CONFIG. " \
-  && exit 1
+echo "Collecting logs..."
+for i in ${!filtered_nodes[@]}; do
+  iHost=$(get_host "${filtered_nodes[$i]}")
+  echo "  $iHost"
+  scp_file $iHost "/data/logs/mongodb.log"
+  scp_file $iHost "/data/diagnostic.data"
+done
