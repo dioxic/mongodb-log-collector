@@ -8,7 +8,7 @@ cli_help() {
   cli_name=${0##*/}
   echo "
 MongoDB Collector CLI
-Version: 0.1
+Version: 0.2
 https://github.com/dioxic/mongodb-log-downloader
 
 Usage: $cli_name [command]

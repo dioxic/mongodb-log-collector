@@ -70,8 +70,21 @@ done
 
 echo "Collecting logs..."
 for i in ${!filtered_nodes[@]}; do
-  iHost=$(get_host "${filtered_nodes[$i]}")
-  echo "  $iHost"
-  scp_file $iHost "/data/logs/mongodb.log"
-  scp_file $iHost "/data/diagnostic.data"
+  iHost=$(get_host_cfg "${filtered_nodes[$i]}")
+  iScratch=$(get_scratch_cfg "${filtered_nodes[$i]}")
+  iLog=$(get_log_cfg "${filtered_nodes[$i]}")
+  iPurpose=$(get_purpose_cfg "${filtered_nodes[$i]}")
+  iType=$(get_type_cfg "${filtered_nodes[$i]}")
+
+  prep_log_dir $iHost $iScratch
+  copy_log_to_scratch $iHost $iScratch $iLog
+
+  [[ "$iPurpose" == "APP" ]] && copy_mms_conf_to_scratch $iHost $iScratch
+  if [[ "$iPurpose" == "NOSQL" ]]; then
+    copy_mongod_ftdc_to_scratch $iHost $iScratch
+    copy_mongod_conf_to_scratch $iHost $iScratch
+  fi
+
+  zip_scratch $iHost $iScratch $iPurpose
+  scp_log_zip $iHost $iScratch
 done

@@ -67,7 +67,57 @@ scp_file() {
   scp -ri "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1":"$2" "$WORKDIR"/$(basename $2)
 }
 
-# node line
-get_host() {
+scp_log_zip() {
+    scp -ri "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1":"$2/*-diag.tar.gz" "$WORKDIR"
+}
+
+prep_log_dir() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "rm -rf $2/log-collector; mkdir $2/log-collector"
+}
+
+# copy logs to scratch
+copy_log_to_scratch() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "cp $3/* $2/log-collector"
+}
+
+copy_mms_conf_to_scratch() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "cp -r /opt/mongodb/mms/conf $2/log-collector"
+}
+
+copy_mongod_conf_to_scratch() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "cp /etc/mongod.conf $2/log-collector"
+}
+
+copy_mongod_ftdc_to_scratch() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "cp -r /mongod/diagnostic.data $2/log-collector"
+}
+
+# host scratch purpose
+zip_scratch() {
+  ssh -i "$SSH_KEY" -o "StrictHostKeyChecking=no" "$SSH_USER"@"$1" "cd $2; tar -czf $1-$3-diag.tar.gz log-collector"
+}
+
+# node column
+get_host_cfg() {
   echo $1 | (IFS=" " read gIndex gHost gOther; echo $gHost)
+}
+
+# scratch column
+get_scratch_cfg() {
+  echo $1 | (IFS=" " read gIndex gHost gPurpose gType gDc gScratch gOther; echo $gScratch)
+}
+
+# log column
+get_log_cfg() {
+  echo $1 | (IFS=" " read gIndex gHost gPurpose gType gDc gScratch gLog; echo $gLog)
+}
+
+# purpose column
+get_purpose_cfg() {
+  echo $1 | (IFS=" " read gIndex gHost gPurpose gOther; echo $gPurpose)
+}
+
+# purpose column
+get_type_cfg() {
+  echo $1 | (IFS=" " read gIndex gHost gPurpose gType gOther; echo $gType)
 }
